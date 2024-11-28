@@ -1,4 +1,4 @@
-from chess import Board
+from chess import Board, pgn
 import numpy as np
 
 WHITE = 1
@@ -13,7 +13,8 @@ def board_to_tensor(board: Board):
     14: white queen side castling rights\n
     15: black king side castling rights\n
     16: black queen side castling rights\n
-    17: all 1s for CNN to detect board edge
+    17: legal squares to move to\n
+    18: all 1s for CNN to detect board edge\n
     """
 
     tensor = np.zeros((18, 8, 8))
@@ -49,7 +50,27 @@ def board_to_tensor(board: Board):
         if board.has_queenside_castling_rights(BLACK):
             tensor[16, :, :] = 1
 
-        # fill in 17 (board edge)
-        tensor[17, :, :] = 1
+        # fill in 17 (legal squares)
+        for move in board.legal_moves:
+            row, col = divmod(move.to_square, 8)
+            tensor[17, row, col] = 1
+
+        # fill in 18 (board edge)
+        tensor[19, :, :] = 1
     
     return tensor
+
+
+def load_dataset(path: str):
+    games = []
+
+    with open(path, 'r') as file:
+        while True:
+            game = pgn.read_game(file)
+
+            if game is None:
+                break
+
+            games.append(game)
+
+    return games

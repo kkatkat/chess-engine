@@ -1,5 +1,4 @@
 import math
-from typing import Type
 from tree_node import TreeNode
 import random
 from chess import Board, Outcome
@@ -9,12 +8,12 @@ def uct_value(node, parent):
 
     return val
 
-def select(node: Type[TreeNode]):
+def select(node: TreeNode):
     if node.is_leaf_node() or node.is_terminal_node():
         return node
     else:
         max_uct_child = None
-        max_uct_value = -5000
+        max_uct_value = float("-inf")
 
         for move, child in node.visited_moves_and_nodes:
             child_uct = uct_value(child, node)
@@ -28,7 +27,7 @@ def select(node: Type[TreeNode]):
         else:
             return select(max_uct_child)
 
-def expand(node: Type[TreeNode]):
+def expand(node: TreeNode):
     move_to_expand = node.non_visited_legal_moves.pop(random.randint(0, len(node.non_visited_legal_moves) - 1))
     board = node.board.copy()
 
@@ -40,8 +39,8 @@ def expand(node: Type[TreeNode]):
     node.visited_moves_and_nodes.append((move_to_expand, new_child))
     return new_child
 
-def simulate(node: Type[TreeNode], player_color):
-    board: Type[Board] = node.board.copy()
+def simulate(node: TreeNode, player_color):
+    board: Board = node.board.copy()
     our_color = player_color
     opponent_color = not our_color
 
@@ -53,7 +52,7 @@ def simulate(node: Type[TreeNode], player_color):
 
     payout = 0
 
-    outcome: Type[Outcome] = board.outcome(claim_draw = True)
+    outcome: Outcome = board.outcome(claim_draw = True)
 
     if outcome.winner == our_color:
         payout = 1
@@ -64,7 +63,7 @@ def simulate(node: Type[TreeNode], player_color):
 
     return payout
     
-def backpropagate(node: Type[TreeNode], payout):
+def backpropagate(node: TreeNode, payout):
     node.M = ((node.M * node.V) + payout) / (node.V + 1)
     node.V += 1
 

@@ -1,5 +1,4 @@
 from chess import Board
-from typing import Type
 
 class TreeNode():
     def __init__(self, board):
@@ -9,7 +8,7 @@ class TreeNode():
         self.visited_moves_and_nodes = []
         self.non_visited_legal_moves = list(board.legal_moves)
 
-        self.board: Type[Board] = board
+        self.board: Board = board
         self.parent = None
 
     def is_leaf_node(self):
