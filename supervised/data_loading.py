@@ -1,4 +1,7 @@
 from chess import Board, pgn
+from chess.pgn import Game
+from typing import List
+from moves_encoder import MovesEncoder
 import numpy as np
 
 WHITE = 1
@@ -6,8 +9,8 @@ BLACK = 0
 
 def board_to_tensor(board: Board):
     """
-    0 to 5: white pieces  (1 - pawn, 2 - knight, 3 - bishop, 4  - rook, 5  - queen, 6  - king)\n
-    6 to 11: black pieces (7 - pawn, 8 - knight, 9 - bishop, 10 - rook, 11 - queen, 12 - king)\n
+    0 to 5: white pieces  (0 - pawn, 1 - knight, 2 - bishop, 3  - rook, 4  - queen, 5  - king)\n
+    6 to 11: black pieces (6 - pawn, 7 - knight, 8 - bishop, 9 - rook, 10 - queen, 11 - king)\n
     12: turn (all 1s for white, all 0s for black)\n
     13: white king side castling rights\n
     14: white queen side castling rights\n
@@ -17,7 +20,7 @@ def board_to_tensor(board: Board):
     18: all 1s for CNN to detect board edge\n
     """
 
-    tensor = np.zeros((18, 8, 8))
+    tensor = np.zeros((19, 8, 8))
 
     piece_map = board.piece_map()
 
@@ -33,35 +36,35 @@ def board_to_tensor(board: Board):
         # fill in 0 to 11 (piece positions)
         tensor[piece_color + piece_type, row, col] = 1
 
-        # fill in 12 (turn) to 1s if white's turn, else do nothing
-        if (board.turn):
-            tensor[12, :, :] = 1
+    # fill in 12 (turn) to 1s if white's turn, else do nothing
+    if (board.turn):
+        tensor[12, :, :] = 1
 
-        # fill in 13 to 16 (castling rights)
-        if board.has_kingside_castling_rights(WHITE):
-            tensor[13, :, :] = 1
-        
-        if board.has_queenside_castling_rights(WHITE):
-            tensor[14, :, :] = 1
-        
-        if board.has_kingside_castling_rights(BLACK):
-            tensor[15, :, :] = 1
+    # fill in 13 to 16 (castling rights)
+    if board.has_kingside_castling_rights(WHITE):
+        tensor[13, :, :] = 1
+    
+    if board.has_queenside_castling_rights(WHITE):
+        tensor[14, :, :] = 1
+    
+    if board.has_kingside_castling_rights(BLACK):
+        tensor[15, :, :] = 1
 
-        if board.has_queenside_castling_rights(BLACK):
-            tensor[16, :, :] = 1
+    if board.has_queenside_castling_rights(BLACK):
+        tensor[16, :, :] = 1
 
-        # fill in 17 (legal squares)
-        for move in board.legal_moves:
-            row, col = divmod(move.to_square, 8)
-            tensor[17, row, col] = 1
+    # fill in 17 (legal squares)
+    for move in board.legal_moves:
+        row, col = divmod(move.to_square, 8)
+        tensor[17, row, col] = 1
 
-        # fill in 18 (board edge)
-        tensor[19, :, :] = 1
+    # fill in 18 (board edge)
+    tensor[18, :, :] = 1
     
     return tensor
 
 
-def load_dataset(path: str):
+def load_games(path: str):
     games = []
 
     with open(path, 'r') as file:
@@ -74,3 +77,17 @@ def load_dataset(path: str):
             games.append(game)
 
     return games
+
+def load_data(games: List[Game], encoder: MovesEncoder, batch_size: int = 32):
+    X = []
+    y = []
+
+    for game in games:
+        board = game.board()
+
+        for move in game.mainline_moves():
+            X.append(board_to_tensor(board))
+            y.append(encoder.encode(move.uci()))
+            board.push(move)
+
+    return np.array(X), np.array(y)
