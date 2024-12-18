@@ -1,6 +1,6 @@
 from chess import Board, pgn
 from chess.pgn import Game
-from typing import List
+from typing import List, Generator
 from moves_encoder import MovesEncoder
 import numpy as np
 
@@ -20,7 +20,7 @@ def board_to_tensor(board: Board):
     18: all 1s for CNN to detect board edge\n
     """
 
-    tensor = np.zeros((19, 8, 8))
+    tensor = np.zeros((19, 8, 8), dtype=bool)
 
     piece_map = board.piece_map()
 
@@ -64,30 +64,28 @@ def board_to_tensor(board: Board):
     return tensor
 
 
-def load_games(path: str):
-    games = []
-
+def load_games(path: str) -> Generator[Game, None, None]:
     with open(path, 'r') as file:
         while True:
             game = pgn.read_game(file)
-
             if game is None:
                 break
+            yield game
 
-            games.append(game)
-
-    return games
-
-def load_data(games: List[Game], encoder: MovesEncoder, batch_size: int = 32):
-    X = []
-    y = []
+def load_data(games: Generator[Game, None, None], encoder: MovesEncoder, limit_moves: int = None) -> Generator[tuple, None, None]:
+    count = 0
 
     for game in games:
         board = game.board()
 
         for move in game.mainline_moves():
-            X.append(board_to_tensor(board))
-            y.append(encoder.encode(move.uci()))
-            board.push(move)
+            X = board_to_tensor(board)
+            y = encoder.encode(move.uci())
 
-    return np.array(X), np.array(y)
+            yield X, y
+
+            board.push(move)
+            count += 1
+            
+            if limit_moves is not None and count >= limit_moves:
+                return
