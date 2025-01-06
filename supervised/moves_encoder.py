@@ -2,6 +2,9 @@ class MovesEncoder():
     def __init__(self):
         self.move_indices = self.encode_moves()
         self.moves_at_indices = {index: move for move, index in self.move_indices.items()}
+        self.num_actions = len(self.move_indices)
+
+        print(f"Number of moves: {len(self.move_indices)}")
     
     def encode(self, move: str) -> int:
         return self.move_indices[move]
