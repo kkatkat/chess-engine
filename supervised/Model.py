@@ -1,7 +1,7 @@
 from torch import nn
 
 class Model(nn.Module):
-    def __init__(self, num_planes=19, board_size=8, num_actions: int = None):
+    def __init__(self, num_planes=19, num_actions: int = None):
         super(Model, self).__init__()
         
         # Convolutional layers
@@ -18,7 +18,7 @@ class Model(nn.Module):
         self.relu3 = nn.ReLU()
         
         # Fully connected layers
-        self.fc1 = nn.Linear(128 * board_size * board_size, 512)
+        self.fc1 = nn.Linear(8192, 512)
         self.fc_relu1 = nn.ReLU()
         self.fc2 = nn.Linear(512, num_actions)
     
