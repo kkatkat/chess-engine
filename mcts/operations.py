@@ -1,7 +1,8 @@
 import math
 from tree_node import TreeNode
 import random
-from chess import Board, Outcome
+from chess import Board, Outcome, Move
+from predict import predict_move
 
 def uct_value(node, parent):
     val = node.M + 1.4142 * math.sqrt(math.log(parent.V) / node.V)
@@ -39,15 +40,21 @@ def expand(node: TreeNode):
     node.visited_moves_and_nodes.append((move_to_expand, new_child))
     return new_child
 
-def simulate(node: TreeNode, player_color):
+def simulate(node: TreeNode, player_color, with_network=False):
     board: Board = node.board.copy()
     our_color = player_color
     opponent_color = not our_color
 
     while board.outcome(claim_draw = True) == None:
         legal_moves = list(board.legal_moves)
-        
-        move = random.choice(legal_moves)
+        move = None
+
+        if with_network:
+            move, _, _ = predict_move(board)
+            move = Move.from_uci(move)
+        else:
+            move = random.choice(legal_moves)
+
         board.push(move)
 
     payout = 0

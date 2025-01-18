@@ -2,7 +2,7 @@ from chess import Board
 from tree_node import TreeNode
 from operations import select, expand, simulate, backpropagate
 
-def run_mcts(fen, iterations=1600):
+def run_mcts(fen, iterations=1600, with_network=False):
     board = Board(fen)
     root = TreeNode(board)
 
@@ -16,7 +16,7 @@ def run_mcts(fen, iterations=1600):
         if not node.is_terminal_node():
             node = expand(node)
 
-        payout = simulate(node, our_color)
+        payout = simulate(node, our_color, with_network)
         backpropagate(node, payout)
 
     # sort the children of the root node by the number of visits
