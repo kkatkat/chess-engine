@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Collapse, Container, Divider, Flex, Group, Paper, Stack, TextInput, Title, useMantineTheme } from "@mantine/core";
-import { IconBrandGithub, IconCheck, IconFlag, IconPencil, IconPlayerSkipBack, IconRepeat, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconBrandGithub, IconCheck, IconPencil, IconPlayerSkipBack, IconRepeat, IconSparkles, IconX } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Square } from "chess.js";
